@@ -22,7 +22,7 @@ using namespace llvm::object;
 using namespace llvm::ELF;
 
 namespace opts {
-extern cl::opt<std::string> ReadPerfEvents;
+extern cl::opt<bool> ReadPerfEvents;
 extern cl::opt<bool> ArmSPE;
 } // namespace opts
 
@@ -93,9 +93,10 @@ protected:
   /// Parse and check SPE brstack as LBR.
   void parseAndCheckBrstackEvents(
       uint64_t PID,
+      StringRef &Buffer,
       const std::vector<std::pair<Trace, TakenBranchInfo>> &ExpectedSamples) {
     DataAggregator DA("<pseudo input>");
-    DA.ParsingBuf = opts::ReadPerfEvents;
+    DA.ParsingBuf = Buffer;
     DA.BC = BC.get();
     DataAggregator::MMapInfo MMap;
     DA.BinaryMMapInfo.insert(std::make_pair(PID, MMap));
@@ -134,7 +135,8 @@ TEST_F(PerfSpeEventsTestHelper, SpeBranchesWithBrstack) {
   // ```
 
   opts::ArmSPE = true;
-  opts::ReadPerfEvents = "  1234  0xa001/0xa002/PN/-/-/10/COND/-\n"
+  opts::ReadPerfEvents = true;
+  StringRef Buffer =     "  1234  0xa001/0xa002/PN/-/-/10/COND/-\n"
                          "  1234  0xb001/0xb002/P/-/-/4/RET/-\n"
                          "  1234  0xc456/0xc789/P/-/-/13/-/-\n"
                          "  1234  0xd123/0xd456/M/-/-/7/RET/-\n"
@@ -158,7 +160,7 @@ TEST_F(PerfSpeEventsTestHelper, SpeBranchesWithBrstack) {
       {{0xe001, 0xe002, Trace::BR_ONLY}, {1, 0}},
       {{0xf001, 0xf002, Trace::BR_ONLY}, {1, 1}}};
 
-  parseAndCheckBrstackEvents(1234, ExpectedSamples);
+  parseAndCheckBrstackEvents(1234, Buffer, ExpectedSamples);
 }
 
 #endif
