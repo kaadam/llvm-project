@@ -158,6 +158,7 @@ private:
   };
 
   /// Process info for spawned processes
+  PerfProcessInfo BuildIDProcessInfo;
   PerfProcessInfo MainEventsPPI;
   PerfProcessInfo MemEventsPPI;
   PerfProcessInfo MMapEventsPPI;
